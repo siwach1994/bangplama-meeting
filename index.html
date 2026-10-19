@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>ระบบนัดหมายการประชุม · กฟส.บางปลาม้า</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B3D2E'/%3E%3Crect x='14' y='18' width='36' height='32' rx='5' fill='none' stroke='%2306C755' stroke-width='5'/%3E%3Cpath d='M14 28h36M24 12v10M40 12v10' stroke='%2306C755' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  /* หน้านี้เป็นแค่ "ทางเข้า" — ฟอร์มจริงอยู่บน Google Apps Script แล้วฝังไว้ในกรอบ
+     ไฟล์นี้ไม่มีความลับ ไม่มีรหัสชีต รหัสโฟลเดอร์ หรือ Token ใด ๆ (ดู README) */
+  :root{ --ink:#0B3D2E; --green:#06C755; --paper:#FAFAF6; --muted:#6B7772; }
+  html,body{ margin:0; height:100%; background:var(--paper); }
+  body{ font-family:'Sarabun',system-ui,-apple-system,'Segoe UI',sans-serif; color:#16211D; }
+  #app{ position:fixed; inset:0; width:100%; height:100%; border:0; display:block; }
+  #cover{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:14px; padding:24px 16px; box-sizing:border-box;
+    background:var(--paper); text-align:center; transition:opacity .3s; }
+  #cover.gone{ opacity:0; pointer-events:none; }
+  .badge{ width:64px; height:64px; border-radius:18px; background:var(--ink);
+    display:grid; place-items:center; box-shadow:0 6px 18px rgba(11,61,46,.25); }
+  h1{ margin:0; font-size:20px; color:var(--ink); }
+  p{ margin:0; color:var(--muted); font-size:15px; line-height:1.6; max-width:340px; }
+  .spin{ width:28px; height:28px; border-radius:50%; border:3px solid #DDE5E0;
+    border-top-color:var(--green); animation:r 0.9s linear infinite; }
+  @keyframes r{ to{ transform:rotate(360deg); } }
+  .btn{ display:inline-block; margin-top:4px; padding:12px 22px; border-radius:12px;
+    background:var(--green); color:#fff; font-weight:700; font-size:16px; text-decoration:none; }
+  .link{ color:var(--ink); font-size:14px; }
+  .hide{ display:none; }
+</style>
+</head>
+<body>
+<iframe id="app" title="ระบบนัดหมายการประชุม" allow="clipboard-write"></iframe>
+
+<div id="cover" role="status">
+  <div class="badge">
+    <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="14" width="44" height="40" rx="6" fill="none" stroke="#06C755" stroke-width="6"/><path d="M10 27h44M22 7v12M42 7v12" stroke="#06C755" stroke-width="6" stroke-linecap="round"/></svg>
+  </div>
+  <h1>ระบบนัดหมายการประชุม</h1>
+  <div id="loading">
+    <div class="spin" style="margin:6px auto 12px"></div>
+    <p>กำลังเปิดแบบฟอร์ม…</p>
+    <p id="slow" class="hide" style="margin-top:10px">ใช้เวลานานกว่าปกติ <a class="link" id="slowLink" target="_top">เปิดระบบโดยตรง</a></p>
+  </div>
+  <div id="failed" class="hide">
+    <p>เปิดแบบฟอร์มในหน้านี้ไม่ได้ อาจเพราะยังไม่ได้ล็อกอินบัญชี Google หรือเบราว์เซอร์ไม่อนุญาต</p>
+    <p style="margin:14px 0 0"><a class="btn" id="openLink" target="_top">เปิดระบบนัดหมาย</a></p>
+  </div>
+</div>
+
+<script>
+// ลิงก์เว็บแอปของระบบ (deployment ที่ผู้ใช้ใช้งานจริง) — ไม่ใช่ความลับ เป็นลิงก์เดียวกับที่แจกให้ทุกคน
+var APP_URL = 'https://script.google.com/macros/s/AKfycbzyornsNbb9gn6l7nTAHT3l4ogVv6L_4vmiAZ85Oyz8wb87nWldpS_kquf7XHxuKopG/exec';
+
+var $ = function (id) { return document.getElementById(id); };
+$('slowLink').href = APP_URL;
+$('openLink').href = APP_URL;
+
+var ready = false;
+// ฟอร์ม (Index.html บน Apps Script) ส่งข้อความนี้มาเมื่อเปิดขึ้นแล้ว
+window.addEventListener('message', function (ev) {
+  if (ev.data !== 'meeting-app-ready') return;
+  if (!/\.googleusercontent\.com$/.test(String(ev.origin))) return;
+  ready = true;
+  $('cover').classList.add('gone');
+});
+
+$('app').src = APP_URL;
+
+setTimeout(function () { if (!ready) $('slow').classList.remove('hide'); }, 6000);
+// รอนานแล้วยังไม่ขึ้น = เปิดในกรอบไม่ได้ ให้กดเปิดลิงก์ตรงแทน
+setTimeout(function () {
+  if (ready) return;
+  $('loading').classList.add('hide');
+  $('failed').classList.remove('hide');
+}, 15000);
+</script>
+</body>
+</html>
